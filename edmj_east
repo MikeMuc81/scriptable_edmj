@@ -1,18 +1,111 @@
-let req = new Request('https://edmj.beck.space/east.jpg');
-let image = await req.loadImage();
-let widget = new ListWidget();
-let image2 = widget.addImage(image);
 
+let param = args.widgetParameter
+let url
 
-if(config.runsInWidget){
-image2.applyFillingContentMode()
-image2.centerAlignImage()
-image2.imageSize = new Size(338, 158)
-Script.setWidget(widget);
-Script.complete()
+if (param != null && param.length > 0) {
+  url = param
+} else {
+  url = "https://edmj.beck.space/east.jpg"
 }
-else {
-  image2.applyFillingContentMode()
-  image2.imageSize = new Size(360, 376)
-  widget.presentLarge()
+
+const imgUrl = url
+const imgReq = new Request(imgUrl)
+const img = await imgReq.loadImage()
+
+// Function to fetch METAR data
+async function fetchMetarData() {
+  const metarUrl = "https://tgftp.nws.noaa.gov/data/observations/metar/stations/EDMA.TXT";
+  const metarReq = new Request(metarUrl);
+  const metarData = await metarReq.loadString();
+  const lines = metarData.trim().split("\n");
+  return lines.length > 1 ? lines[1] : "No data";
+}
+
+// Function to calculate sunrise and sunset
+function calculateSunTimes(lat, lon) {
+  // Basic sunrise/sunset calculation for simplicity
+  const now = new Date();
+  const dayOfYear = Math.floor((now - new Date(now.getFullYear(), 0, 0)) / 86400000);
+  const zenith = -0.83; // Solar declination for sunrise/sunset
+  const D2R = Math.PI / 180;
+  const R2D = 180 / Math.PI;
+
+  // Calculate solar declination
+  const decl = 23.45 * Math.sin(D2R * (360 / 365 * (dayOfYear + 10)));
+
+  // Calculate hour angle
+  const latRad = lat * D2R;
+  const declRad = decl * D2R;
+  const haRad = Math.acos((Math.sin(zenith * D2R) - Math.sin(latRad) * Math.sin(declRad)) / (Math.cos(latRad) * Math.cos(declRad)));
+
+  // Convert hour angle to hours
+  const sunriseHour = 12 - 0.5 * haRad * R2D / 15;
+  const sunsetHour = 12 + 0.5 * haRad * R2D / 15;
+
+  // Adjust for local timezone offset
+  const offset = now.getTimezoneOffset() / 60;
+  return {
+    sunrise: formatTime(sunriseHour - offset),
+    sunset: formatTime(sunsetHour - offset)
+  };
+}
+
+// Function to format time
+function formatTime(decimalTime) {
+  const hours = Math.floor(decimalTime);
+  const minutes = Math.round((decimalTime - hours) * 60);
+  return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+}
+
+// Function to print SF Symbols
+function printSFSymbol(stack, symbolStr, width) {
+  let mobileIcon = SFSymbol.named(symbolStr);
+  let mobileIconElement = stack.addImage(mobileIcon.image);
+  mobileIconElement.imageSize = new Size(width, width);
+  mobileIconElement.tintColor = Color.white();
+}
+
+
+// Fetch METAR data
+const metarText = await fetchMetarData();
+
+// Calculate sunrise and sunset
+const sunTimes = calculateSunTimes(48.1663316, 11.1318657);
+
+if (config.runsInWidget) {
+  let widget = createWidget(img, metarText, sunTimes)
+  Script.setWidget(widget)
+  Script.complete()
+} else {   
+  let widget = createWidget(img, metarText, sunTimes)
+  await widget.presentLarge()
+}
+
+function createWidget(img, metarText, sunTimes) {
+  const widget = new ListWidget()
+  widget.backgroundColor = Color.black()
+  widget.url = url
+  widget.backgroundImage = img 
+
+  widget.addSpacer()
+
+ // Title with sunrise and sunset using SF Symbols
+  const titleStack = widget.addStack();
+  printSFSymbol(titleStack, "sunrise.fill", 12);
+  titleStack.addText(` ${sunTimes.sunrise} `);
+  printSFSymbol(titleStack, "sunset.fill", 12);
+  titleStack.addText(` ${sunTimes.sunset}`);
+  titleStack.layoutHorizontally();
+  titleStack.centerAlignContent();
+
+  widget.addSpacer(2)
+
+  const subtitleText = widget.addText(metarText) // Use METAR data as subtitle
+  subtitleText.font = Font.systemFont(8)
+  subtitleText.textColor = Color.white()
+  subtitleText.textOpacity = 0.8
+  subtitleText.shadowRadius = 3
+  subtitleText.shadowColor = Color.black()
+
+  return widget
 }
