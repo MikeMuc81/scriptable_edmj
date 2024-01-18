@@ -1,8 +1,9 @@
+// Variables used by Scriptable.
+// These must be at the very top of the file. Do not edit.
+// icon-color: blue; icon-glyph: camera-retro;
+
 let req = new Request('https://edmj.beck.space/east.jpg');
 let image = await req.loadImage();
-let widget = new ListWidget();
-let image2 = widget.addImage(image);
-
 
 if (config.runsInWidget) {
   let widget = createWidget(image)
@@ -41,9 +42,9 @@ function createWidget(image) {
 }
 
 function getMetar() {
-  const url = 'https://tgftp.nws.noaa.gov/data/observations/metar/stations/EDMA.TXT'
-var req = new Request(url)
-var metar = await req.loadstring()
+  const url2 = "https://tgftp.nws.noaa.gov/data/observations/metar/stations/EDMA.TXT"
+var req = new Request(url2)
+var metar = await req.load()
   })
   return metar
 }
