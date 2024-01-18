@@ -51,11 +51,10 @@ function createWidget(img) {
 
   return widget
 }
-// 
-// function getWcNameFromUrl() {
-//   let wcName = url.split('/')
-//   wcName = wcName[wcName.length - 2].replace('-', ' ').replace(/\b\w/g, function(c) {
-//     return c.toUpperCase();
-//   })
-//   return wcName
-// }
+
+function getWcNameFromUrl() {
+   let wcName = new Request("https://tgftp.nws.noaa.gov/data/observations/metar/stations/EDMA.TXT");
+console.log(await wcName.loadString());
+   })
+   return wcName
+ }
