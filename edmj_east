@@ -90,14 +90,19 @@ function createWidget(img, metarText, sunTimes) {
   widget.addSpacer()
 
  // Title with sunrise and sunset using SF Symbols
-  const titleStack = widget.addStack();
-  printSFSymbol(titleStack, "sunrise.fill", 12);
-  titleStack.addText(` ${sunTimes.sunrise} `);
-  printSFSymbol(titleStack, "sunset.fill", 12);
-  titleStack.addText(` ${sunTimes.sunset}`);
-  titleStack.layoutHorizontally();
-  titleStack.centerAlignContent();
+const titleStack = widget.addStack();
+printSFSymbol(titleStack, "sunrise.fill", 10);
+let titleText = titleStack.addText(` ${sunTimes.sunrise} `);
+titleText.font = Font.systemFont(9);  
+titleText.textColor = Color.white();
 
+printSFSymbol(titleStack, "sunset.fill", 10);
+titleText = titleStack.addText(` ${sunTimes.sunset}`);
+titleText.font = Font.systemFont(9);  
+titleText.textColor = Color.white();
+
+titleStack.layoutHorizontally();
+titleStack.centerAlignContent();
   widget.addSpacer(2)
 
   const subtitleText = widget.addText(metarText) // Use METAR data as subtitle
