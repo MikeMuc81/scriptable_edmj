@@ -22,7 +22,7 @@ if (config.runsInWidget) {
   Script.complete()
 } else { 	
   let widget = createWidget(img)
-  await widget.presentMedium()
+  await widget.presentLarge()
 }
 
 function createWidget(img) {
@@ -52,9 +52,9 @@ function createWidget(img) {
   return widget
 }
 
-function getWcNameFromUrl() {
-   let wcName = new Request("https://aviationweather.gov/data/metar/?id=EDMA&hours=0");
-console.log(await wcName.loadString());
-   })
-   return wcName
- }
+// function getWcNameFromUrl() {
+//    let wcName = new Request("https://aviationweather.gov/cgi-bin/data/metar.php?ids=EDMA&hours=0&order=id%2C-obs&sep=true");
+// let metar = wcName.json()
+//    }
+//    return metar
+//  }
