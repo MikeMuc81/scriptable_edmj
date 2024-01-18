@@ -2,10 +2,17 @@ let req = new Request('https://edmj.beck.space/east.jpg');
 let image = await req.loadImage();
 let widget = new ListWidget();
 let image2 = widget.addImage(image);
+
+
+if(config.runsInWidget){
 image2.applyFillingContentMode()
 image2.centerAlignImage()
 image2.imageSize = new Size(338, 158)
 Script.setWidget(widget);
-QuickLook.present(image)
 Script.complete()
-
+}
+else {
+  image2.applyFillingContentMode()
+  image2.imageSize = new Size(360, 376)
+  widget.presentLarge()
+}
