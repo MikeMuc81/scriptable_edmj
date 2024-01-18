@@ -1,29 +1,40 @@
 // Variables used by Scriptable.
 // These must be at the very top of the file. Do not edit.
 // icon-color: blue; icon-glyph: camera-retro;
+// Script by Andreas Redeker <hello@andreasredeker.de>
 
-let req = new Request('https://edmj.beck.space/east.jpg');
-let image = await req.loadImage();
+let param = args.widgetParameter
+let url
+
+if (param != null && param.length > 0) {
+  url = param
+} else {
+  url = "https://edmj.beck.space/east.jpg"
+}
+
+const imgUrl = url
+const imgReq = await new Request(imgUrl)
+const img = await imgReq.loadImage()
 
 if (config.runsInWidget) {
-  let widget = createWidget(image)
+  let widget = createWidget(img)
   Script.setWidget(widget)
   Script.complete()
 } else { 	
-  let widget = createWidget(image)
+  let widget = createWidget(img)
   await widget.presentMedium()
 }
 
-function createWidget(image) {
+function createWidget(img) {
 
   const widget = new ListWidget()
   widget.backgroundColor = Color.black()
   widget.url = url
-  widget.backgroundImage = image 
+  widget.backgroundImage = img 
 
   widget.addSpacer()
 
-  const titleText = widget.addText(getMetar())
+  const titleText = widget.addText('title')
   titleText.font = Font.boldSystemFont(12)
   titleText.textColor = Color.white()
   titleText.shadowRadius = 3
@@ -31,7 +42,7 @@ function createWidget(image) {
 
   widget.addSpacer(2)
 
-  const subtitleText = widget.addText('test')
+  const subtitleText = widget.addText('subtitle')
   subtitleText.font = Font.systemFont(8)
   subtitleText.textColor = Color.white()
   subtitleText.textOpacity = 0.8
@@ -40,11 +51,11 @@ function createWidget(image) {
 
   return widget
 }
-
-function getMetar() {
-  const url2 = "https://tgftp.nws.noaa.gov/data/observations/metar/stations/EDMA.TXT"
-var req = new Request(url2)
-var metar = await req.load()
-  })
-  return metar
-}
+// 
+// function getWcNameFromUrl() {
+//   let wcName = url.split('/')
+//   wcName = wcName[wcName.length - 2].replace('-', ' ').replace(/\b\w/g, function(c) {
+//     return c.toUpperCase();
+//   })
+//   return wcName
+// }
