@@ -4,15 +4,46 @@ let widget = new ListWidget();
 let image2 = widget.addImage(image);
 
 
-if(config.runsInWidget){
-image2.applyFillingContentMode()
-image2.centerAlignImage()
-image2.imageSize = new Size(338, 158)
-Script.setWidget(widget);
-Script.complete()
+if (config.runsInWidget) {
+  let widget = createWidget(image)
+  Script.setWidget(widget)
+  Script.complete()
+} else { 	
+  let widget = createWidget(image)
+  await widget.presentMedium()
 }
-else {
-  image2.applyFillingContentMode()
-  image2.imageSize = new Size(360, 376)
-  widget.presentLarge()
+
+function createWidget(image) {
+
+  const widget = new ListWidget()
+  widget.backgroundColor = Color.black()
+  widget.url = url
+  widget.backgroundImage = image 
+
+  widget.addSpacer()
+
+  const titleText = widget.addText(getMetar())
+  titleText.font = Font.boldSystemFont(12)
+  titleText.textColor = Color.white()
+  titleText.shadowRadius = 3
+  titleText.shadowColor = Color.black()
+
+  widget.addSpacer(2)
+
+  const subtitleText = widget.addText('test')
+  subtitleText.font = Font.systemFont(8)
+  subtitleText.textColor = Color.white()
+  subtitleText.textOpacity = 0.8
+  subtitleText.shadowRadius = 3
+  subtitleText.shadowColor = Color.black()
+
+  return widget
+}
+
+function getMetar() {
+  const url = 'https://tgftp.nws.noaa.gov/data/observations/metar/stations/EDMA.TXT'
+var req = new Request(url)
+var metar = await req.loadstring()
+  })
+  return metar
 }
