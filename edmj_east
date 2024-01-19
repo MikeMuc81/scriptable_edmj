@@ -21,41 +21,35 @@ async function fetchMetarData() {
   return lines.length > 1 ? lines[1] : "No data";
 }
 
-// Function to calculate sunrise and sunset
-function calculateSunTimes(lat, lon) {
-  // Basic sunrise/sunset calculation for simplicity
-  const now = new Date();
-  const dayOfYear = Math.floor((now - new Date(now.getFullYear(), 0, 0)) / 86400000);
-  const zenith = -0.83; // Solar declination for sunrise/sunset
-  const D2R = Math.PI / 180;
-  const R2D = 180 / Math.PI;
 
-  // Calculate solar declination
-  const decl = 23.45 * Math.sin(D2R * (360 / 365 * (dayOfYear + 10)));
+// Function to fetch sunrise and sunset times from API
+async function fetchSunTimes() {
+  try {
+    const apiUrl = "https://dwd.api.proxy.bund.dev/v30/stationOverviewExtended?stationIds=10852";
+    const apiReq = new Request(apiUrl);
+    const apiData = await apiReq.loadJSON();
 
-  // Calculate hour angle
-  const latRad = lat * D2R;
-  const declRad = decl * D2R;
-  const haRad = Math.acos((Math.sin(zenith * D2R) - Math.sin(latRad) * Math.sin(declRad)) / (Math.cos(latRad) * Math.cos(declRad)));
+    if (apiData && apiData["10852"] && apiData["10852"].days) {
+      const today = new Date().toISOString().split('T')[0]; // Format: 'YYYY-MM-DD'
+      const todayData = apiData["10852"].days.find(d => d.dayDate === today);
 
-  // Convert hour angle to hours
-  const sunriseHour = 12 - 0.5 * haRad * R2D / 15;
-  const sunsetHour = 12 + 0.5 * haRad * R2D / 15;
+      if (todayData) {
+        const sunriseDate = new Date(todayData.sunrise);
+        const sunsetDate = new Date(todayData.sunset);
 
-  // Adjust for local timezone offset
-  const offset = now.getTimezoneOffset() / 60;
-  return {
-    sunrise: formatTime(sunriseHour - offset),
-    sunset: formatTime(sunsetHour - offset)
-  };
+        return {
+          sunrise: `${sunriseDate.getHours().toString().padStart(2, '0')}:${sunriseDate.getMinutes().toString().padStart(2, '0')}`,
+          sunset: `${sunsetDate.getHours().toString().padStart(2, '0')}:${sunsetDate.getMinutes().toString().padStart(2, '0')}`
+        };
+      }
+    }
+  } catch (error) {
+    console.error(`Error fetching sun times: ${error}`);
+  }
+  
+  return { sunrise: 'Unknown', sunset: 'Unknown' };
 }
 
-// Function to format time
-function formatTime(decimalTime) {
-  const hours = Math.floor(decimalTime);
-  const minutes = Math.round((decimalTime - hours) * 60);
-  return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-}
 
 // Function to print SF Symbols
 function printSFSymbol(stack, symbolStr, width) {
@@ -65,13 +59,11 @@ function printSFSymbol(stack, symbolStr, width) {
   mobileIconElement.tintColor = Color.white();
 }
 
-
-// Fetch METAR data
+// Fetch METAR and sun times data
 const metarText = await fetchMetarData();
+const sunTimes = await fetchSunTimes();
 
-// Calculate sunrise and sunset
-const sunTimes = calculateSunTimes(48.1663316, 11.1318657);
-
+// Widget creation
 if (config.runsInWidget) {
   let widget = createWidget(img, metarText, sunTimes)
   Script.setWidget(widget)
@@ -89,20 +81,20 @@ function createWidget(img, metarText, sunTimes) {
 
   widget.addSpacer()
 
- // Title with sunrise and sunset using SF Symbols
-const titleStack = widget.addStack();
-printSFSymbol(titleStack, "sunrise.fill", 10);
-let titleText = titleStack.addText(` ${sunTimes.sunrise} `);
-titleText.font = Font.systemFont(9);  
-titleText.textColor = Color.white();
+  // Title with sunrise and sunset using SF Symbols
+  const titleStack = widget.addStack();
+  printSFSymbol(titleStack, "sunrise.fill", 10);
+  let titleText = titleStack.addText(` ${sunTimes.sunrise} `);
+  titleText.font = Font.systemFont(9);  
+  titleText.textColor = Color.white();
 
-printSFSymbol(titleStack, "sunset.fill", 10);
-titleText = titleStack.addText(` ${sunTimes.sunset}`);
-titleText.font = Font.systemFont(9);  
-titleText.textColor = Color.white();
+  printSFSymbol(titleStack, "sunset.fill", 10);
+  titleText = titleStack.addText(` ${sunTimes.sunset}`);
+  titleText.font = Font.systemFont(9);  
+  titleText.textColor = Color.white();
 
-titleStack.layoutHorizontally();
-titleStack.centerAlignContent();
+  titleStack.layoutHorizontally();
+  titleStack.centerAlignContent();
   widget.addSpacer(2)
 
   const subtitleText = widget.addText(metarText) // Use METAR data as subtitle
