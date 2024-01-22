@@ -13,14 +13,14 @@ const imgUrl = url
 const imgReq = new Request(imgUrl)
 const img = await imgReq.loadImage()
 
-// Function to fetch METAR data
+// Function to fetch METAR data from image URL header
 async function fetchMetarData() {
-  const metarUrl = "https://tgftp.nws.noaa.gov/data/observations/metar/stations/EDMA.TXT";
-  const metarReq = new Request(metarUrl);
-  const metarData = await metarReq.loadString();
-  const lines = metarData.trim().split("\n");
-  return lines.length > 1 ? lines[1] : "No data";
+  const response = await imgReq.load();
+  const headers = imgReq.response.headers;
+  const metarData = headers['x-amz-meta-metar'];
+  return metarData ? metarData : "No METAR data available";
 }
+
 
 
 // Function to fetch sunrise and sunset times from API
