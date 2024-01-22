@@ -22,33 +22,18 @@ async function fetchMetarData() {
 }
 
 
-
-// Function to fetch sunrise and sunset times from API
+// Function to fetch sunrise and sunset times from image headers
 async function fetchSunTimes() {
-  try {
-    const apiUrl = "https://dwd.api.proxy.bund.dev/v30/stationOverviewExtended?stationIds=10852";
-    const apiReq = new Request(apiUrl);
-    const apiData = await apiReq.loadJSON();
 
-    if (apiData && apiData["10852"] && apiData["10852"].days) {
-      const today = new Date().toISOString().split('T')[0]; // Format: 'YYYY-MM-DD'
-      const todayData = apiData["10852"].days.find(d => d.dayDate === today);
 
-      if (todayData) {
-        const sunriseDate = new Date(todayData.sunrise);
-        const sunsetDate = new Date(todayData.sunset);
+  // Extract sunrise and sunset times from headers
+  const sunriseTime = imgReq.response.headers["x-amz-meta-sr"];
+  const sunsetTime = imgReq.response.headers["x-amz-meta-ss"];
 
-        return {
-          sunrise: `${sunriseDate.getHours().toString().padStart(2, '0')}:${sunriseDate.getMinutes().toString().padStart(2, '0')}`,
-          sunset: `${sunsetDate.getHours().toString().padStart(2, '0')}:${sunsetDate.getMinutes().toString().padStart(2, '0')}`
-        };
-      }
-    }
-  } catch (error) {
-    console.error(`Error fetching sun times: ${error}`);
-  }
-  
-  return { sunrise: 'Unknown', sunset: 'Unknown' };
+  return {
+    sunrise: sunriseTime ? sunriseTime : "No data",
+    sunset: sunsetTime ? sunsetTime : "No data"
+  };
 }
 
 
@@ -85,12 +70,12 @@ function createWidget(img, metarText, sunTimes) {
   // Title with sunrise and sunset using SF Symbols
   const titleStack = widget.addStack();
   printSFSymbol(titleStack, "sunrise.fill", 10);
-  let titleText = titleStack.addText(` ${sunTimes.sunrise} `);
+  let titleText = titleStack.addText(` ${sunTimes.sunrise} UTC `);
   titleText.font = Font.systemFont(9);  
   titleText.textColor = Color.white();
 
   printSFSymbol(titleStack, "sunset.fill", 10);
-  titleText = titleStack.addText(` ${sunTimes.sunset}`);
+  titleText = titleStack.addText(` ${sunTimes.sunset} UTC`);
   titleText.font = Font.systemFont(9);  
   titleText.textColor = Color.white();
 
