@@ -2,10 +2,11 @@
 let param = args.widgetParameter
 let url
 
-if (param != null && param.length > 0) {
-  url = param
+if (param === "west") {
+    url = "https://edmj.beck.space/west.jpg";
 } else {
-  url = "https://edmj.beck.space/east.jpg"
+    // Default to east if the parameter is not "west" or is not provided
+    url = "https://edmj.beck.space/east.jpg";
 }
 
 const imgUrl = url
